@@ -1,0 +1,101 @@
+🧠 SCOPUL PROIECTULUI
+Să aprindă și să stingă LED-urile (de la stânga la dreapta) cu efect de fade-in/fade-out, folosind PWM.
+Perioada totală de fade se poate controla din comutatoarele sw[3:0] între 2 și 4 secunde (cu pași de 0.2 sec).
+Dacă valoarea e mai mare decât limita → afișează „STOP” pe 7 segmente.
+
+🎛️ SW[3:0] – Comutatoarele
+Controlează durata efectului fade-in/fade-out.
+
+Valoarea lor (0–10) este transformată în perioade între 2.0 și 4.0 secunde, cu rezoluție de 0.2s.
+
+Ex:
+
+sw = 0000 → 2.0 sec
+
+sw = 0011 → 2.6 sec
+
+sw = 1010 → 4.0 sec
+
+sw > 1010 → afișează STOP
+
+💡 FUNCȚIONAREA PRINCIPALĂ (Componentele codului)
+1. Generator PWM (Pulse Width Modulation)
+vhdl
+Copy
+Edit
+pwm_counter : process(clk, rst)
+Creează un semnal PWM de 100 nivele.
+
+Compară pwm_counter cu duty_cycle → controlează intensitatea LED-ului activ.
+
+Valorile duty_cycle (0–100%) corespund treptat la fade in/out.
+
+2. Selectarea LED-ului activ
+vhdl
+Copy
+Edit
+current_led : integer range 0 to 15
+Doar un singur LED este activ la un moment dat.
+
+Când un LED ajunge la fade-out complet, se trece la următorul.
+
+3. Control fade in/out
+vhdl
+Copy
+Edit
+fade_counter / fade_period
+duty_cycle : 0 → 100 → 0
+Se face fade-in crescând duty_cycle, apoi fade-out scăzându-l.
+
+Când un LED s-a stins complet, current_led se incrementează și trece la următorul.
+
+4. Control perioadă din switch-uri
+vhdl
+Copy
+Edit
+sw => display_value => fade_period := (20 + display_value*2) * 10^7
+display_value ia valorile din comutatoare (0–15).
+
+Se calculează perioada ca (2.0s + sw*0.2s).
+
+Dacă valoarea depășește 10 (adică 4.0 sec), se activează stop_flag.
+
+5. Afișaj 7 segmente
+a) Multiplexare 7-segmente
+vhdl
+Copy
+Edit
+digit_select, digit_timer
+Activează cifrele individuale pe rând (multiplexare).
+
+Rata de comutare este suficient de rapidă pentru a părea simultană.
+
+b) Afișare valoare perioadă (zecimi de sec)
+Ex: pentru 2.6s → se afișează „26”
+
+c) Mesaj „STOP” când perioada > 4s
+vhdl
+Copy
+Edit
+if stop_flag then
+    case digit_select is
+        an <= „0111” → „S”
+        an <= „1011” → „T”
+        an <= „1101” → „O”
+        an <= „1110” → „P”
+Se afișează literele mari STOP în ordine corectă, ocupând toate cele 4 cifre.
+
+🔌 PORTURI (de intrare/ieșire)
+Nume port	Tip	Descriere
+clk	in	Semnal de ceas 100 MHz
+rst	in	Reset sincron
+sw	in [3:0]	Comutatoare pentru perioada
+led	out[15:0]	LED-uri controlate prin PWM
+an	out[3:0]	Anoduri 7-segmente
+seg	out[6:0]	Catoduri 7-segmente
+
+🔚 REZUMAT FINAL
+✅ LED-urile se aprind și se sting treptat, unul câte unul, de la stânga la dreapta.
+✅ Perioada poate fi controlată din switch-uri între 2.0 și 4.0 secunde.
+✅ Afișajul arată valoarea setată sau „STOP” dacă s-a depășit limita.
+✅ Cod curat, stabil, fără glitchuri sau conflicte de ceas.

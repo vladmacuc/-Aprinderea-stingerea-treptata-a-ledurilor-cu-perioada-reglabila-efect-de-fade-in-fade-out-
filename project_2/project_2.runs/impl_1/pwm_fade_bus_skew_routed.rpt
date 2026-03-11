@@ -1,0 +1,16 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.1 (win64) Build 5076996 Wed May 22 18:37:14 MDT 2024
+| Date         : Mon May 26 16:19:56 2025
+| Host         : DESKTOP-QN1L60V running 64-bit major release  (build 9200)
+| Command      : report_bus_skew -warn_on_violation -file pwm_fade_bus_skew_routed.rpt -pb pwm_fade_bus_skew_routed.pb -rpx pwm_fade_bus_skew_routed.rpx
+| Design       : pwm_fade
+| Device       : xa7a35t-cpg236
+| Speed File   : -1I  PRODUCTION 1.16 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Bus Skew Report
+
+No bus skew constraints
+

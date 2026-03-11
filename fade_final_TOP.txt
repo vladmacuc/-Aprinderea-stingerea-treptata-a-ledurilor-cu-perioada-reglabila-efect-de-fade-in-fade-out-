@@ -1,0 +1,171 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity pwm_fade is
+    Port (
+        clk      : in STD_LOGIC;   -- 100MHz clock
+        rst      : in STD_LOGIC;
+        sw       : in STD_LOGIC_VECTOR(3 downto 0); -- switches pt. perioada
+        led      : out STD_LOGIC_VECTOR(15 downto 0);
+        an       : out STD_LOGIC_VECTOR(3 downto 0);
+        seg      : out STD_LOGIC_VECTOR(6 downto 0)
+    );
+end pwm_fade;
+
+architecture Behavioral of pwm_fade is
+
+signal seg_digit : integer range 0 to 10 := 10;
+signal pwm_counter : integer range 0 to 1000000 := 0;
+signal duty_cycle  : integer range 0 to 100 := 0;
+signal fade_up     : boolean := true;
+
+
+signal fade_counter : integer := 0;
+signal fade_period  : integer := 200000000; -- initial 2 sec
+
+signal current_led  : integer range 0 to 15 := 0;
+signal display_value : integer range 0 to 15 := 0;
+signal digit_select  : integer range 0 to 3 := 0;
+signal digit_timer   : integer range 0 to 50000 := 0;
+
+signal stop_flag : boolean := false;
+
+begin
+
+-- PWM generator
+process(clk, rst)
+begin
+    if rst = '1' then
+        pwm_counter <= 0;
+    elsif rising_edge(clk) then
+        if pwm_counter = 999999 then
+            pwm_counter <= 0;
+        else
+            pwm_counter <= pwm_counter + 1;
+        end if;
+    end if;
+end process;
+
+process(pwm_counter, duty_cycle, current_led)
+begin
+    for i in 0 to 15 loop
+        if i = current_led then
+            if pwm_counter < duty_cycle*10000 then
+                led(i) <= '1';
+            else
+                led(i) <= '0';
+            end if;
+        else
+            led(i) <= '0';
+        end if;
+    end loop;
+end process;
+
+-- fade control
+process(clk, rst)
+begin
+    if rst = '1' then
+        fade_counter <= 0;
+        duty_cycle <= 0;
+        fade_up <= true;
+        current_led <= 0;
+    elsif rising_edge(clk) then
+        if fade_counter >= (fade_period/100) then -- 100 steps per fade
+            fade_counter <= 0;
+            if fade_up then
+                if duty_cycle < 100 then
+                    duty_cycle <= duty_cycle + 1;
+                else
+                    fade_up <= false;
+                end if;
+            else
+                if duty_cycle > 0 then
+                    duty_cycle <= duty_cycle - 1;
+                else
+                    fade_up <= true;
+                    if current_led < 15 then
+                        current_led <= current_led + 1;
+                    else
+                        current_led <= 0;
+                    end if;
+                end if;
+            end if;
+        else
+            fade_counter <= fade_counter + 1;
+        end if;
+    end if;
+end process;
+
+-- citire switches perioada (0-10 valid, 11-15 STOP)
+process(sw)
+variable sw_val : integer;
+begin
+    sw_val := to_integer(unsigned(sw));
+    if sw_val > 10 then
+        stop_flag <= true;
+        fade_period <= 0;
+    else
+        stop_flag <= false;
+        fade_period <= (20 + sw_val*2) * 10000000;
+        display_value <= sw_val;
+    end if;
+end process;
+
+-- multiplexare 7 segmente (cu STOP)
+process(clk, rst)
+variable display_real : integer range 20 to 40;
+begin
+    if rst = '1' then
+        digit_timer <= 0;
+        digit_select <= 0;
+    elsif rising_edge(clk) then
+        if digit_timer = 50000 then -- ~1kHz refresh rate
+            digit_timer <= 0;
+            digit_select <= (digit_select + 1) mod 4;
+        else
+            digit_timer <= digit_timer + 1;
+        end if;
+    end if;
+
+    display_real := 20 + display_value*2;
+
+    if stop_flag then  -- Afiseaza STOP
+    case digit_select is
+        when 0 => an <= "0111"; seg <= "0010010"; -- S
+        when 1 => an <= "1011"; seg <= "0001111"; -- T
+        when 2 => an <= "1101"; seg <= "1000000"; -- O
+        when 3 => an <= "1110"; seg <= "0001100"; -- P
+        when others => an <= "1111"; seg <= "1111111";
+    end case;
+
+    else  -- Afiseaza cifre perioada
+        case digit_select is
+            when 0 =>
+                an <= "1110";
+                seg_digit <= display_real mod 10; -- unitati
+            when 1 =>
+                an <= "1101";
+                seg_digit <= display_real / 10; -- zeci
+            when others =>
+                an <= "1111";
+                seg_digit <= 10; -- stins
+        end case;
+
+        case seg_digit is
+            when 0 => seg <= "1000000";
+            when 1 => seg <= "1111001";
+            when 2 => seg <= "0100100";
+            when 3 => seg <= "0110000";
+            when 4 => seg <= "0011001";
+            when 5 => seg <= "0010010";
+            when 6 => seg <= "0000010";
+            when 7 => seg <= "1111000";
+            when 8 => seg <= "0000000";
+            when 9 => seg <= "0010000";
+            when others => seg <= "1111111"; -- stins
+        end case;
+    end if;
+end process;
+
+end Behavioral;

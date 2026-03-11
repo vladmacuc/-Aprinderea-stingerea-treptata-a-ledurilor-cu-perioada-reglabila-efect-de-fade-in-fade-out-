@@ -1,0 +1,26 @@
+#-----------------------------------------------------------
+# Vivado v2024.1 (64-bit)
+# SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+# IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+# SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+# Start of session at: Sun May 25 19:18:44 2025
+# Process ID: 11516
+# Current directory: C:/Users/user/Desktop/Proiect SCID Final/project_2
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent14020 C:\Users\user\Desktop\Proiect SCID Final\project_2\project_2.xpr
+# Log file: C:/Users/user/Desktop/Proiect SCID Final/project_2/vivado.log
+# Journal file: C:/Users/user/Desktop/Proiect SCID Final/project_2\vivado.jou
+# Running On        :DESKTOP-QN1L60V
+# Platform          :Windows Server 2016 or Windows 10
+# Operating System  :19045
+# Processor Detail  :11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz
+# CPU Frequency     :2419 MHz
+# CPU Physical cores:4
+# CPU Logical cores :8
+# Host memory       :8265 MB
+# Swap memory       :3623 MB
+# Total Virtual     :11888 MB
+# Available Virtual :6919 MB
+#-----------------------------------------------------------
+start_gui
+open_project {C:/Users/user/Desktop/Proiect SCID Final/project_2/project_2.xpr}
+update_compile_order -fileset sources_1
